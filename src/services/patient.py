@@ -97,6 +97,43 @@ def create_patient(patient_data, user_id):
         if conn:
             conn.close()
 
+def delete_patient(patient_id, user_id):
+    """
+    Delete a patient record from the database.
+    
+    Args:
+        patient_id: UUID of the patient to delete
+        user_id: UUID of the doctor deleting the patient
+    
+    Returns:
+        bool: True if deletion was successful, False otherwise
+    """
+    conn = None
+    cur = None
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        query = """
+        DELETE FROM patients 
+        WHERE id = %s AND user_id = %s
+        """
+        
+        cur.execute(query, (patient_id, user_id))
+        conn.commit()
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error deleting patient: {e}")
+        if conn:
+            conn.rollback()
+        return False
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
 def get_patient_full_details(patient_id, user_id):
     """
     Retrieve comprehensive patient information including:

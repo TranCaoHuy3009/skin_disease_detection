@@ -5,7 +5,7 @@ import streamlit as st
 import pandas as pd
 import random
 
-from src.services.patient import get_patient_full_details, update_patient_details
+from src.services.patient import get_patient_full_details, update_patient_details, delete_patient
 from src.services.detection import create_detection_session
 from src.utils.common import save_uploaded_file
 from config import USER_ID
@@ -30,7 +30,37 @@ def render_patient_detail():
         st.error("Patient not found")
         return
 
-    # st.markdown("## Patient Information Dashboard")
+    # Add navigation/delete icons
+    nav_container = st.container()
+    with nav_container:
+        col1, col2, col3 = st.columns([1, 1, 20])
+        with col1:
+            if st.button("⬅️", help="Back to patient list"):
+                st.session_state.current_page = "home"
+                st.rerun()
+        with col2:
+            if st.button("🗑️", help="Delete patient"):
+                st.session_state.delete_confirmation = True
+
+    # Handle delete confirmation
+    if st.session_state.get('delete_confirmation', False):
+        with st.container():
+            st.warning(f"Are you sure you want to delete patient: {patient['name']}?")
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Yes, Delete", key="confirm_delete"):
+                    success = delete_patient(patient_id, USER_ID)
+                    if success:
+                        st.success("Patient deleted successfully!")
+                        st.session_state.delete_confirmation = False
+                        st.session_state.current_page = "patient_list"
+                        st.rerun()
+                    else:
+                        st.error("Failed to delete patient")
+            with col2:
+                if st.button("Cancel", key="cancel_delete"):
+                    st.session_state.delete_confirmation = False
+                    st.rerun()
     
     # Top Container
     top_container = st.container()
