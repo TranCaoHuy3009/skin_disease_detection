@@ -192,3 +192,40 @@ def create_detection_session(patient_id, user_id, session_data):
             cur.close()
         if conn:
             conn.close()
+
+def delete_detection_session(detection_session_id, user_id):
+    """
+    Delete a detection session from the database.
+    
+    Args:
+        detection_session_id: UUID of the session to delete
+        user_id: UUID of the doctor deleting the session
+    
+    Returns:
+        bool: True if deletion was successful, False otherwise
+    """
+    conn = None
+    cur = None
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        query = """
+        DELETE FROM detection_sessions 
+        WHERE id = %s AND user_id = %s
+        """
+        
+        cur.execute(query, (detection_session_id, user_id))
+        conn.commit()
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error deleting detection session: {e}")
+        if conn:
+            conn.rollback()
+        return False
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()

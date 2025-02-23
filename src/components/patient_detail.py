@@ -6,7 +6,7 @@ import pandas as pd
 import random
 
 from src.services.patient import get_patient_full_details, update_patient_details, delete_patient
-from src.services.detection import create_detection_session
+from src.services.detection import create_detection_session, delete_detection_session
 from src.utils.common import save_uploaded_file
 from config import USER_ID
 
@@ -35,8 +35,7 @@ def render_patient_detail():
     with nav_container:
         col1, col2, col3 = st.columns([1, 1, 20])
         with col1:
-            if st.button("⬅️", help="Back to patient list"):
-                st.session_state.current_page = "home"
+            if st.button("🔄", help="Refresh patient details"):
                 st.rerun()
         with col2:
             if st.button("🗑️", help="Delete patient"):
@@ -217,16 +216,22 @@ def render_detection_sessions(patient):
             border-bottom: 1px solid #e0e0e0;
             padding: 8px 0;
         }
+        .delete-btn {
+            font-size: 14px;  /* Smaller font size for delete icon */
+            padding: 0px 8px;
+            line-height: 1;
+        }
         </style>
     """, unsafe_allow_html=True)
     
-    # Create header row
-    header_cols = st.columns([3, 1, 2, 3, 3])
-    headers = ['Images', 'Date', 'Detection Result', 'Diagnostic Result', 'Follow-up Plan']
+    # Update header columns to include delete button column
+    header_cols = st.columns([3, 1, 2, 3, 3, 1])  # Added 1 for delete button
+    headers = ['Images', 'Date', 'Detection Result', 'Diagnostic Result', 'Follow-up Plan', '']  # Empty header for delete button
     
     for col, header in zip(header_cols, headers):
-        with col:
-            st.markdown(f"**{header}**")
+        if header != "":
+            with col:
+                st.markdown(f"**{header}**")
     
     st.markdown("---")
     
@@ -234,7 +239,8 @@ def render_detection_sessions(patient):
     for index, session in enumerate(detection_sessions):
         detection_images = session.get('detection_images', [])
         
-        cols = st.columns([3, 1, 2, 3, 3])
+        # Update columns to match header
+        cols = st.columns([3, 1, 2, 3, 3, 1])
         
         with cols[0]:
             if detection_images:
@@ -264,6 +270,30 @@ def render_detection_sessions(patient):
         
         with cols[4]:
             st.write(session.get('follow_up_plan', 'No plan'))
+
+        # Add delete button in the last column
+        with cols[5]:
+            if st.button("🗑️", key=f"delete_session_{session['id']}", help="Delete session"):
+                st.session_state[f"deleted_session"] = session['id']
+    
+    logger.debug(f"Session state: {st.session_state}")
+    # Handle delete confirmation
+    deleted_session = st.session_state.get("deleted_session", None)
+    logger.debug(f"Deleted session: {deleted_session}")
+    if deleted_session:
+        with st.container():
+            st.warning("Are you sure you want to delete this detection session?")
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Yes, Delete", key=f"confirm_delete_session_{session['id']}"):
+                    delete_detection_session(deleted_session, USER_ID)
+                    st.session_state[f"deleted_session"] = None
+                    st.rerun()
+
+            with col2:
+                if st.button("Cancel", key=f"cancel_delete_session_{session['id']}"):
+                    st.session_state[f"deleted_session"] = None
+                    st.rerun()
         
         st.markdown("---")
 
