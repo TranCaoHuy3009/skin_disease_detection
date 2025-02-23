@@ -38,7 +38,6 @@ def render_patient_list():
     # Ensure correct column order
     columns_order = ['Name'] + [col for col in df.columns if col not in ['Name', 'id']]
     display_columns = columns_order  # Excluding 'id' from display
-    logger.debug(f"Display columns: {display_columns}")
 
     # Create column headers with proper widths
     cols = st.columns([2 if col == 'Name' else 1 for col in display_columns])

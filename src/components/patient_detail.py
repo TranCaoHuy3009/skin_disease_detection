@@ -25,7 +25,6 @@ def render_patient_detail():
         return
     
     patient = get_patient_full_details(patient_id, user_id=USER_ID)
-    logger.debug(f"Patient details: {patient}")
     
     if not patient:
         st.error("Patient not found")

@@ -35,8 +35,7 @@ def get_all_patients(user_id):
         
         cur.execute(query, (user_id,))
         patients = cur.fetchall()
-        
-        logger.debug(f"Fetched patients for user {user_id}: {patients}")
+
         return patients
     except Exception as e:
         logger.error(f"Error fetching patients: {e}")
