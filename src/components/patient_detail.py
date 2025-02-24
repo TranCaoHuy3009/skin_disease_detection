@@ -6,7 +6,7 @@ import pandas as pd
 import random
 
 from src.services.patient import get_patient_full_details, update_patient_details, delete_patient
-from src.services.detection import create_detection_session, delete_detection_session
+from src.services.detection import update_detection_session, delete_detection_session
 from src.utils.common import save_uploaded_file
 from config import USER_ID
 
@@ -77,7 +77,7 @@ def render_patient_detail():
             st.markdown('</div>', unsafe_allow_html=True)
     
     st.markdown("---")
-    
+
     # Bottom Container - Detection Sessions
     bottom_container = st.container()
     with bottom_container:
@@ -225,8 +225,8 @@ def render_detection_sessions(patient):
     """, unsafe_allow_html=True)
     
     # Update header columns to include delete button column
-    header_cols = st.columns([3, 1, 2, 3, 3, 1])  # Added 1 for delete button
-    headers = ['Images', 'Date', 'Detection Result', 'Diagnostic Result', 'Follow-up Plan', '']  # Empty header for delete button
+    header_cols = st.columns([3, 1, 2, 3, 3, 0.5, 0.5])
+    headers = ['Images', 'Date', 'Detection Result', 'Diagnostic Result', 'Follow-up Plan', '', '']  # Empty header for delete button
     
     for col, header in zip(header_cols, headers):
         if header != "":
@@ -240,7 +240,7 @@ def render_detection_sessions(patient):
         detection_images = session.get('detection_images', [])
         
         # Update columns to match header
-        cols = st.columns([3, 1, 2, 3, 3, 1])
+        cols = st.columns([3, 1, 2, 3, 3, 0.5, 0.5])
         
         with cols[0]:
             if detection_images:
@@ -267,35 +267,79 @@ def render_detection_sessions(patient):
         
         with cols[3]:
             st.write(session.get('diagnostic_result', 'No diagnosis'))
-        
+
         with cols[4]:
             st.write(session.get('follow_up_plan', 'No plan'))
 
-        # Add delete button in the last column
         with cols[5]:
+            if st.button("✏️", key=f"edit_session_{session['id']}", help="Edit session"):
+                st.session_state["edited_session"] = session['id']
+                st.session_state["edited_session_index"] = index
+
+        with cols[6]:
             if st.button("🗑️", key=f"delete_session_{session['id']}", help="Delete session"):
-                st.session_state[f"deleted_session"] = session['id']
-    
-    logger.debug(f"Session state: {st.session_state}")
-    # Handle delete confirmation
-    deleted_session = st.session_state.get("deleted_session", None)
-    logger.debug(f"Deleted session: {deleted_session}")
-    if deleted_session:
+                st.session_state["deleted_session"] = session['id']
+
+    # Edit Dialog
+    edited_session = st.session_state.get("edited_session", None)
+    if edited_session:
+        logger.debug(f"Edited session: {edited_session}")
         with st.container():
-            st.warning("Are you sure you want to delete this detection session?")
+            st.markdown("### Edit Session Details")
+            
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("Yes, Delete", key=f"confirm_delete_session_{session['id']}"):
+                temp_diagnostic = st.text_area(
+                    "Diagnostic Result",
+                    value=detection_sessions[st.session_state["edited_session_index"]].get('diagnostic_result', ''),
+                    height=150,
+                    key=f"edit_diagnostic_{edited_session}"
+                )
+            
+            with col2:
+                temp_followup = st.text_area(
+                    "Follow-up Plan",
+                    value=detection_sessions[st.session_state["edited_session_index"]].get('follow_up_plan', ''),
+                    height=150,
+                    key=f"edit_followup_{edited_session}"
+                )
+
+            updated_data = {
+                'diagnostic_result': temp_diagnostic,
+                'follow_up_plan': temp_followup,
+            }
+            col1, col2, col3 = st.columns([0.6, 0.8, 10])
+            with col1:
+                if st.button("Save", key=f"save_edit_{edited_session}"):
+                    update_detection_session(edited_session, USER_ID, updated_data)
+                    st.session_state["edited_session"] = None
+                    st.rerun()
+            
+            with col2:
+                if st.button("Cancel", key=f"cancel_edit_{edited_session}"):
+                    st.session_state["edited_session"] = None
+                    st.rerun()
+    
+    # Handle delete confirmation
+    deleted_session = st.session_state.get("deleted_session", None)
+    if deleted_session:
+        logger.debug(f"Deleted session: {deleted_session}")
+        with st.container():
+            st.warning("Are you sure you want to delete this detection session?")
+            
+            col1, col2, col3 = st.columns([0.6, 0.8, 10])
+            with col1:
+                if st.button("Yes", key=f"confirm_delete_session_{session['id']}"):
                     delete_detection_session(deleted_session, USER_ID)
                     st.session_state[f"deleted_session"] = None
                     st.rerun()
-
+            
             with col2:
                 if st.button("Cancel", key=f"cancel_delete_session_{session['id']}"):
                     st.session_state[f"deleted_session"] = None
                     st.rerun()
         
-        st.markdown("---")
+    st.markdown("---")
 
 def get_avatar_html(sex):
     """Generate avatar HTML based on sex."""

@@ -1,11 +1,12 @@
 # main.py
 
 import streamlit as st
+from loguru import logger
 from src.components.login import render_login
 from src.components.patient_list import render_patient_list
 from src.components.patient_detail import render_patient_detail
 from src.components.patient_form import render_patient_form
-from src.utils.session import init_session_state, is_authenticated
+from src.utils.session import init_session_state, is_authenticated, reset_session_state_at_home_page
 
 # Set page config
 st.set_page_config(
@@ -18,16 +19,9 @@ def main():
     # Initialize session state
     init_session_state()
     
-    # Initialize session state variables
-    if 'current_page' not in st.session_state:
-        st.session_state.current_page = 'home'
-    if 'selected_patient_id' not in st.session_state:
-        st.session_state.selected_patient_id = None
-    if 'selected_patient_name' not in st.session_state:
-        st.session_state.selected_patient_name = None
-    
     # Check authentication
     if not is_authenticated():
+        logger.debug(f"Session state at login page:\n{st.session_state}")
         render_login()
     else:
         # Sidebar navigation
@@ -45,10 +39,13 @@ def main():
         
         # Main content
         if st.session_state.current_page == 'home':
+            reset_session_state_at_home_page()
+            logger.debug(f"Session state at home page:\n{st.session_state}")
             st.title("Skin Disease Detection")
             render_patient_list()
             
         elif st.session_state.current_page == 'new_patient':
+            logger.debug(f"Session state at new patient page:\n{st.session_state}")
             st.title("New Patient")
             render_patient_form()
             # st.write("New patient form coming soon...")
@@ -57,6 +54,7 @@ def main():
                 st.rerun()
                 
         elif st.session_state.current_page == 'patient_detail':
+            logger.debug(f"Session state at patient detail page:\n{st.session_state}")
             st.title("Patient Profile")
             st.write(f"Viewing patient: {st.session_state.selected_patient_name}")
             render_patient_detail()

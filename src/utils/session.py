@@ -6,6 +6,27 @@ def init_session_state():
         st.session_state.authenticated = False
     if 'username' not in st.session_state:
         st.session_state.username = None
+    if 'current_page' not in st.session_state:
+        st.session_state.current_page = 'home'
+    if 'selected_patient_id' not in st.session_state:
+        st.session_state.selected_patient_id = None
+    if 'selected_patient_name' not in st.session_state:
+        st.session_state.selected_patient_name = None
+
+def reset_session_state_at_home_page():
+    """Reset session state variables except for username and authenticated."""
+    if 'current_page' not in st.session_state:
+        st.session_state.current_page = 'home'
+    if 'selected_patient_id' in st.session_state:
+        st.session_state.selected_patient_id = None
+    if 'selected_patient_name' in st.session_state:
+        st.session_state.selected_patient_name = None
+    if 'edited_session' in st.session_state:
+        st.session_state.edited_session = None
+    if 'edited_session_index' in st.session_state:
+        st.session_state.edited_session_index = None
+    if 'deleted_session' in st.session_state:
+        st.session_state.deleted_session = None
 
 def set_authenticated(username: str):
     """Set the session as authenticated."""

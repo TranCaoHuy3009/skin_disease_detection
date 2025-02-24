@@ -35,20 +35,16 @@ def update_detection_session(detection_session_id, user_id, session_data):
         query = """
         UPDATE detection_sessions
         SET 
-            detection_result = COALESCE(%s, detection_result),
             diagnostic_result = COALESCE(%s, diagnostic_result),
             follow_up_plan = COALESCE(%s, follow_up_plan),
-            detection_date = COALESCE(%s, detection_date),
             updated_at = CURRENT_TIMESTAMP
         WHERE id = %s AND user_id = %s
         RETURNING *
         """
         
         cur.execute(query, (
-            session_data.get('detection_result'),
             session_data.get('diagnostic_result'),
             session_data.get('follow_up_plan'),
-            session_data.get('detection_date'),
             detection_session_id,
             user_id
         ))
