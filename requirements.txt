@@ -7,3 +7,5 @@ python-dotenv==1.0.1
 streamlit==1.42.0
 SQLAlchemy==2.0.38
 numpy==2.0.2
+qrcode==8.0
+opencv-python==4.11.0.86

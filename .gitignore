@@ -2,3 +2,4 @@
 *venv*
 *.env
 *_pycache_*
+*local_files/*

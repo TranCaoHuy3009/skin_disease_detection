@@ -1,4 +1,5 @@
 import psycopg2
+import shutil
 from datetime import datetime, timedelta
 import random
 from psycopg2.extras import RealDictCursor
@@ -8,6 +9,7 @@ import os
 import glob
 
 from src.utils.common import generate_patient_id
+from src.utils.qr_code import generate_qr
 
 def get_image_paths():
     """Get list of all image files from images folder"""
@@ -164,6 +166,20 @@ def insert_dummy_data():
                 "present_illness_history": "Skin problems"
             }
         ]
+
+        # Remove existing QR code directory and its contents
+        qr_code_dir = "local_files/qr_code"
+        if os.path.exists(qr_code_dir):
+            shutil.rmtree(qr_code_dir)
+
+        # Create fresh QR code directory
+        os.makedirs(qr_code_dir, exist_ok=True)
+
+        # Generate QR codes for each patient
+        for patient in patients:
+            patient_id = patient["patient_id"]
+            qr_code_path = os.path.join(qr_code_dir, f"{patient_id}.png")
+            generate_qr(patient_id, qr_code_path)
 
         # Insert patients
         for patient in patients:

@@ -5,6 +5,7 @@ import streamlit as st
 from src.services.patient import create_patient
 from src.utils.validators import validate_phone_number, validate_required_fields
 from src.utils.common import generate_patient_id
+from src.utils.qr_code import generate_qr
 from config import USER_ID
 
 def render_patient_form():
@@ -142,6 +143,7 @@ def render_patient_form():
                 
                 if new_patient:
                     st.success("Patient created successfully!")
+                    generate_qr(new_patient['patient_id'], f"local_files/qr_code/{new_patient['patient_id']}.png")
                     # Reset form data
                     st.session_state.form_data = {
                         'name': '',

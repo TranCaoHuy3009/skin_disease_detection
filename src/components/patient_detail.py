@@ -1,9 +1,7 @@
 from datetime import datetime
 from loguru import logger
-import json
+import os
 import streamlit as st
-import pandas as pd
-import random
 
 from src.services.patient import get_patient_full_details, update_patient_details, delete_patient
 from src.services.detection import update_detection_session, delete_detection_session
@@ -90,41 +88,13 @@ def render_patient_info(patient):
     col1, col2 = st.columns(2)
 
     with col1:
-        current_sex = patient.get('sex', 'Male')
-        
-        # CSS for the avatar and layout
-        st.markdown("""
-            <style>
-            .avatar-wrapper {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                width: 100%;
-                padding: 50px 0;
-            }
-            .avatar-container {
-                width: 180px;
-                height: 180px;
-                background-color: #f3f4f6;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            }
-            .male-avatar { background: linear-gradient(45deg, #3B82F6, #60A5FA); }
-            .female-avatar { background: linear-gradient(45deg, #EC4899, #F472B6); }
-            .other-avatar { background: linear-gradient(45deg, #6B7280, #9CA3AF); }
-            .avatar-image {
-                width: 65%;
-                height: 65%;
-                filter: brightness(0) invert(1);
-            }
-            </style>
-        """, unsafe_allow_html=True)
-        
-        # Avatar section
-        avatar_html = get_avatar_html(current_sex)
-        st.markdown(avatar_html, unsafe_allow_html=True)
+        qr_code_path = f"local_files/qr_code/{patient['patient_id']}.png"
+        if os.path.exists(qr_code_path):
+            col1.markdown("<div style='text-align: center; margin-top: 30px;'>", unsafe_allow_html=True)
+            col1.image(qr_code_path, width=300)
+            col1.markdown("</div>", unsafe_allow_html=True)
+        else:
+            st.error("QR Code not found")
     
     with col2:
         name = st.text_input("Name", value=patient.get('name', ''))

@@ -13,8 +13,11 @@ def format_datetime(dt):
     return dt.strftime("%Y-%m-%d %H:%M")
 
 def generate_patient_id():
-    """Generate a unique patient number in format P-YYYYMMDD-XXX"""
-    return f"P-{datetime.now().strftime('%Y%m%d')}-{random.randint(1, 999):03d}"
+    """Generate a unique patient number in format P-YYYYMMDD-XXXXX"""
+    now = datetime.now()
+    timestamp = now.strftime('%Y%m%d')
+    unique_suffix = now.microsecond % 100000
+    return f"P-{timestamp}-{unique_suffix:05d}"
 
 def save_uploaded_file(uploaded_file):
     """
