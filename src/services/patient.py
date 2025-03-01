@@ -116,7 +116,7 @@ def delete_patient(patient_id, user_id):
         
         query = """
         DELETE FROM patients 
-        WHERE id = %s AND user_id = %s
+        WHERE patient_id = %s AND user_id = %s
         """
         
         cur.execute(query, (patient_id, user_id))
