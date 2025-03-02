@@ -22,6 +22,7 @@ def render_patient_list():
     st.write("")
 
     # Fetch patients data
+    logger.debug(f"USER_ID: {USER_ID}")
     patients = get_all_patients(user_id=USER_ID)
     if not patients:
         st.info("No patients found. Create a new patient to get started.")
